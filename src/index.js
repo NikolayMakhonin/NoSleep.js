@@ -71,27 +71,31 @@ class NoSleep {
     return this.enabled;
   }
 
-  enable() {
-    if (nativeWakeLock()) {
-      return navigator.wakeLock
-        .request("screen")
-        .then((wakeLock) => {
-          this._wakeLock = wakeLock;
-          this.enabled = true;
-          console.log("Wake Lock active.");
-          this._wakeLock.addEventListener("release", () => {
-            // ToDo: Potentially emit an event for the page to observe since
-            // Wake Lock releases happen when page visibility changes.
-            // (https://web.dev/wakelock/#wake-lock-lifecycle)
-            console.log("Wake Lock released.");
-          });
-        })
-        .catch((err) => {
-          this.enabled = false;
-          console.error(`${err.name}, ${err.message}`);
-          throw err;
+  enableWithWakeLock() {
+    return navigator.wakeLock
+      .request("screen")
+      .then((wakeLock) => {
+        this._wakeLock = wakeLock;
+        this.enabled = true;
+        console.log("Wake Lock active.");
+        this._wakeLock.addEventListener("release", () => {
+          // ToDo: Potentially emit an event for the page to observe since
+          // Wake Lock releases happen when page visibility changes.
+          // (https://web.dev/wakelock/#wake-lock-lifecycle)
+          console.log("Wake Lock released.");
         });
-    } else if (oldIOS()) {
+      })
+      .catch((err) => {
+        this.enabled = false;
+        console.log(`${err.name}, ${err.message}`);
+        return this.enableDefault()
+        // console.error(`${err.name}, ${err.message}`);
+        // throw err;
+      });
+  }
+
+  enableDefault() {
+    if (oldIOS()) {
       this.disable();
       console.warn(`
         NoSleep enabled for older iOS devices. This can interrupt
@@ -120,11 +124,17 @@ class NoSleep {
     }
   }
 
-  disable() {
+  enable() {
     if (nativeWakeLock()) {
-      if (this._wakeLock) {
-        this._wakeLock.release();
-      }
+      return this.enableWithWakeLock()
+    } else {
+      return this.enableDefault()
+    }
+  }
+
+  disable() {
+    if (this._wakeLock) {
+      this._wakeLock.release();
       this._wakeLock = null;
     } else if (oldIOS()) {
       if (this.noSleepTimer) {
