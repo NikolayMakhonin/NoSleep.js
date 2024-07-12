@@ -31,9 +31,11 @@ class NoSleep {
       };
       document.addEventListener("visibilitychange", handleVisibilityChange);
       document.addEventListener("fullscreenchange", handleVisibilityChange);
-    } else if (oldIOS()) {
+    }
+    if (oldIOS()) {
       this.noSleepTimer = null;
-    } else {
+    }
+    {
       // Set up no sleep video element
       this.noSleepVideo = document.createElement("video");
 
