@@ -4,7 +4,7 @@ declare namespace nosleep {
 
     get isEnabled(): boolean;
     enable(): Promise<any>;
-    disable(): void;
+    disable(): Promise<void>;
     _addSourceToVideo(
       element: HTMLElement,
       type: string,

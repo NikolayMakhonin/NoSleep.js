@@ -99,7 +99,7 @@ class NoSleep {
   enableDefault() {
     if (oldIOS()) {
       this.disable();
-      console.warn(`
+      console.log(`
         NoSleep enabled for older iOS devices. This can interrupt
         active or long-running network requests from completing successfully.
         See https://github.com/richtr/NoSleep.js/issues/15 for more details.
@@ -136,11 +136,13 @@ class NoSleep {
 
   disable() {
     if (this._wakeLock) {
-      this._wakeLock.release();
+      const wakeLock = this._wakeLock;
       this._wakeLock = null;
+      this.enabled = false;
+      return wakeLock.release()
     } else if (oldIOS()) {
       if (this.noSleepTimer) {
-        console.warn(`
+        console.log(`
           NoSleep now disabled for older iOS devices.
         `);
         window.clearInterval(this.noSleepTimer);
